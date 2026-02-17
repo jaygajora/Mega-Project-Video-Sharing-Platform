@@ -27,6 +27,30 @@
 // Method 2
 
 import connectToDB from "./db/index.js";
+import {app} from "./app.js";  // this will import the express app from the app.js file
 
-connectToDB();  // this will connect to the database before starting the server
+const port = process.env.PORT || 8080;
+
+// Since connectToDB is an async function, so it will return a promise and we can use .then() and .catch() 
+// to handle the promise returned by connectToDB()
+
+connectToDB() // this will connect to the database before starting the server
+.then(() => {
+
+    const server = app.listen(port, () =>{
+        console.log("Server running on port " + port + "...🚀🚀");
+    })
+
+    server.on("error", (error) => {
+        console.error("Error starting the server: ", error);
+        process.exit(1); // exit the process with a failure code
+    })
+    // start the server only after connecting to the database successfully
+})
+.catch((error) => {
+    console.error("Failed to connect to the database. Server will not start. ERROR: ", error);
+    process.exit(1); // exit the process with a failure code
+})
+
+// we will start the server in the app.js file after connecting to the database successfully
 
