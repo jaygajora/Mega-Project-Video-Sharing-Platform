@@ -9,6 +9,9 @@
  npm i cookie-parser
  npm i cors
  npm i dot env
+ npm i bcrypt
+ npm i jsonwebtoken
+ npm i mongoose-aggregate-paginate-v2
 
  We use middleswares and configuration settings with .use(), for example: app.use(cors());
  
