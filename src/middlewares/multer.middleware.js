@@ -1,4 +1,4 @@
-import multer form "multer";
+import multer from "multer";
 
 const storage = multer.diskStorage({  // this is a configuration object for multer that specifies how and where to store the uploaded files
     destination: function(req, file, cb){   // this is a callback function that specifies the destination folder where the uploaded files will be stored in the local file system, we will use this folder to temporarily store the uploaded files before uploading them to cloudinary and then deleting them from the local file system

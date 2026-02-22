@@ -1,8 +1,8 @@
-class ApiErrors extends Error{
-    constructor(statuscode, message="Something went wrong", error=[], stack=""){
+class ApiError extends Error{
+    constructor(statusCode, message="Something went wrong", error=[], stack=""){
         super(message); // this will call the constructor of the parent class (Error) and set the message property
         this.message = message;
-        this.statuscode = statuscode;
+        this.statusCode = statusCode;
         this.error = error;
         this.data = null;  // this will hold any additional data that you want to send with the error response
         this.success = false;
@@ -16,5 +16,4 @@ class ApiErrors extends Error{
     }
 }
 
-
-export {ApiErrors};
+export {ApiError};
