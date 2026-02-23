@@ -20,7 +20,7 @@ const uploadToCloudinary = async function(localFilePath){
 
         const response = await cloudinary.uploader.upload(localFilePath, {resource_type: "auto"});
         fs.unlinkSync(localFilePath);   // this will delete the local file after uploading it to cloudinary, we use unlinkSync because it is a synchronous method and it will block the event loop until the file is deleted, which is fine in this case because we want to make sure that the file is deleted (FOR SURE) before we return the result to the client
-        console.log("File uploaded to Cloudinary successfully" + response.secure_url);   // this will log the secure URL of the uploaded file to the console, you can remove this line in production
+        console.log("File uploaded to Cloudinary successfully " + response.secure_url);   // this will log the secure URL of the uploaded file to the console, you can remove this line in production
         return response;    // this will return the result of the upload operation which contains the secure URL of the uploaded file and other information about the uploaded file, we will use this secure URL to store it in our database and send it to the client
     }
     catch(error){

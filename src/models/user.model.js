@@ -52,16 +52,16 @@ const userSchema = new mongoose.Schema({
 
 userSchema.pre("save", async function(next){
     if(!this.isModified("password")){
-        return next();   
+        return next;   // if the password field is not modified, then we will skip hashing the password and move to the next middleware, this is to avoid hashing the password again when we are updating other fields of the user document, for example when we are updating the avatar or cover image of the user, we don't want to hash the password again because it is already hashed, so we will just skip hashing and move to the next middleware which will save the user document to the database
     }
 
     this.password = await bcrypt.hash(this.password, 10);    // hash the password with a salt round of 10, the higher the salt round the more secure the password but it will also take more time to hash the password, so we will use 10 which is a good balance between security and performance
-    next();                          // call the next middleware in the stack, in this case it will be the save method which will save the user to the database after hashing the password
+    next;                          // call the next middleware in the stack, in this case it will be the save method which will save the user to the database after hashing the password
 })
 
 userSchema.methods.isPasswordCorrect = async function(password){
     return await bcrypt.compare(password, this.password);  // this.password is the hashed password stored in the database and password is the plain text password entered by the user during login, bcrypt.compare will return true if they match and false if they don't
-}
+}   // syntax to compare passwords is (passwordSentByUser, passwordInDB)
 
 // JWT is a bearer token which means that the client needs to send it in the Authorization header of the request in the format "Bearer <token>" and the server will verify the token and if it's valid then it will allow the user to access the protected route, otherwise it will return an error response
 
