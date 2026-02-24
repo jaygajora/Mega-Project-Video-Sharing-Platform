@@ -33,7 +33,7 @@ import userRouter from "./routes/user.routes.js";
 
 
 // declaring routes
-app.use("/api/v1/user", userRouter);   // once any user hites any route that starts with /api/v1/user, this will transfer the control to userRouter (router in the user.roytes.js file) and then the userRouter will handle the request and send the response back to the client, for example if the client hits /api/v1/user/register, this will transfer the control to userRouter and then userRouter will look for a route that matches /register and then it will execute the corresponding controller function and send the response back to the client
+app.use("/api/v1/user", userRouter);   // once any user hites any route that starts with /api/v1/user, this will transfer the control to userRouter (router in the user.routes.js file) and then the userRouter will handle the request and send the response back to the client, for example if the client hits /api/v1/user/register, this will transfer the control to userRouter and then userRouter will look for a route that matches /register and then it will execute the corresponding controller function and send the response back to the client
 //http://localhost:8000/api/v1/user/register
 
 

@@ -51,6 +51,7 @@ const userSchema = new mongoose.Schema({
 
 
 userSchema.pre("save", async function(next){
+    // console.log("Inside userSchema.pre(save)");
     if(!this.isModified("password")){
         return next;   // if the password field is not modified, then we will skip hashing the password and move to the next middleware, this is to avoid hashing the password again when we are updating other fields of the user document, for example when we are updating the avatar or cover image of the user, we don't want to hash the password again because it is already hashed, so we will just skip hashing and move to the next middleware which will save the user document to the database
     }
@@ -69,7 +70,8 @@ userSchema.methods.isPasswordCorrect = async function(password){
 //access token is not stored in the database because it is short lived and it is not needed to be stored in the database, it is only needed to be sent to the client and the client will store it in memory or in local storage and send it with every request to the server to access protected routes, 
 // while refresh token is long lived and it is needed to be stored in the database because it is used to generate new access tokens when the access token expires, so we need to store it in the database to verify it when the client sends a request to refresh the access token
 
-userSchema.methods.generateAcccessToken = function(){
+userSchema.methods.generateAccessToken = function(){
+    // console.log("Inside generateAccessToken()");
     return jwt.sign(
         {
             _id : this.id,
@@ -85,6 +87,7 @@ userSchema.methods.generateAcccessToken = function(){
 }
 
 userSchema.methods.generateRefreshToken = function(){
+    // console.log("Inside generateRefreshToken()");
     return jwt.sign(
         {
             _id: this.id
