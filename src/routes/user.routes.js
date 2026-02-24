@@ -5,6 +5,8 @@ import upload from "../middlewares/multer.middleware.js";
 import { verifyJWT } from "../middlewares/auth.middleware.js";
 import { logoutUser } from "../controllers/user.controller.js";
 import { refreshAccessToken } from "../controllers/user.controller.js";
+import { updatePassword } from "../controllers/user.controller.js";
+import { forceResetPassword }  from "../controllers/user.controller.js";
 
 const router = Router();
 
@@ -31,5 +33,7 @@ router.route("/login").post(loginUser);
 //secure routes
 router.route("/logout").post(verifyJWT, logoutUser);
 router.route("/refreshTokens").post(refreshAccessToken);
+router.route("/updatePassword").post(verifyJWT, updatePassword);
+router.route("/force-reset-password").post(verifyJWT, forceResetPassword);
 
 export default router;   // since this has been exported as default, we can import it with any name in app.js, we will import it as userRouter in app.js and use it as a middleware for the /api/v1/users route, this way all the routes defined in this file will be prefixed with /api/v1/users, for example if we define a route for /register in this file, it will be accessible at /api/v1/users/register in the client side

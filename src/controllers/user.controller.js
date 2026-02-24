@@ -5,7 +5,7 @@ import { uploadToCloudinary } from "../utils/cloudinary.js";
 import { ApiResponse } from "../utils/ApiResponse.js";
 import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken"
-import { verifyJWT } from "../middlewares/auth.middleware.js"
+import { verifyJWT } from "../middlewares/auth.middleware.js";
 
 const generateAccessAndRefreshTokens =  async (user) => {
     try{
@@ -317,9 +317,89 @@ const refreshAccessToken = AsyncHandler(async (req, res) => {
 
 })
 
+const updatePassword = AsyncHandler(async (req, res) => {
+
+
+    const {currentPassword, newPassword, confirmNewPassword } = req.body;
+
+    if(!currentPassword){
+        throw new ApiError(400, "Current Password is required!");
+    }
+
+    if(!newPassword){
+        throw new ApiError(400, "New Password is required!");
+    }
+
+    if(!confirmNewPassword){
+        throw new ApiError(400, "Confirm New Password is required!");
+    }
+
+    // const user = req.user;      // because req.user might not have .password if sent via "-password"
+    const user = await User.findById(req.user._id).select("-refreshToken");
+
+    const correctPassword = await user.isPasswordCorrect(currentPassword);
+
+    if(!correctPassword){
+        throw new ApiError(401, "Current Password is INCORRECT");
+    }
+
+    if(newPassword !== confirmNewPassword){
+        throw new ApiError(400, "New Passwords do not match");
+    }
+
+    if(currentPassword === newPassword){
+        throw new ApiError(400, "New password cannot be same as the Current password");
+    }
+
+    // await User.findByIdAndUpdate(
+    //     user._id,
+    //     {$set: {
+    //             password: await bcrypt.hash(newPassword, 10)
+    //         }
+    //     },
+    //     {
+    //         new : true
+    //     }
+    // )
+
+    // user.password = await bcrypt.hash(newPassword, 10);  // the password will be hashed twice (once here and once in the pre save() middleware which will cause an error while authenticating.)    
+    user.password = newPassword;    // it will be hashed via pre.save()
+    await user.save({validateBeforeSave : false});
+    
+    console.log("New Password:" + user.password);
+
+    return res
+    .status(200)
+    .json(
+        new ApiResponse(
+            200,
+            "Password Updated Successfully!",
+            {}
+        )
+    )
+})
+
+const forceResetPassword = AsyncHandler((req, res) =>{
+    const user = req.user;
+    user.password = "temp";
+    user.save({validationBeforeSave : false});
+    
+    res
+    .status(200)
+    .json(
+        new ApiResponse(
+            200, 
+            "Password forcefully reset to 'temp'",
+            {}
+        )
+    )
+})
+
 export {loginUser, 
     registerUser,
     logoutUser,
-    refreshAccessToken
+    refreshAccessToken,
+    updatePassword,
+    forceResetPassword
 }; 
 
