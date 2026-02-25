@@ -379,6 +379,64 @@ const updatePassword = AsyncHandler(async (req, res) => {
     )
 })
 
+const updateUserDetails = AsyncHandler(async(req, res) => {
+
+    // to update username, full name and email
+
+    // we will directly update the fullname
+    // but for username and email, we will check any such user already exists in the DB
+    // if no such user existsthen the user can update their username/email, ELSE WE WILL THROW AN ERROR
+
+    const { username, email, fullName } = req.body;
+
+    let usernameAlreadyExists = null;
+    let emailAlreadyExists = null;
+
+    if(username){
+        usernameAlreadyExists = await User.findOne({username: username});
+    }
+
+    if(email){
+        emailAlreadyExists = await User.findOne({email: email});
+    }
+
+    if(usernameAlreadyExists){
+        throw new ApiError(400, `Username ${username} is not available | User already exists`);
+    }
+
+    if(emailAlreadyExists){
+        throw new ApiError(400, `Email ${email} is not available | User already exists`);
+    }
+
+    const user = req.user;
+    
+    if(username){
+        user.username = username;
+    }
+
+    if(email){
+        // verify current email via otp  - MIDDLEWARE
+        // verify new email via otp      - MIDDLEWARE
+        user.email = email;
+    }
+
+    if(fullName){
+        user.fullName = fullName;
+    }
+
+    await user.save({validateBeforeSave : true});
+
+    res
+    .status(200)
+    .json(
+        new ApiResponse(
+            201,
+            "User Details Updated Successfully!",
+            await User.findById(req.user._id).select("-password -refreshToken")
+        )
+    )
+})
+
 const forceResetPassword = AsyncHandler((req, res) =>{
     const user = req.user;
     user.password = "temp";
@@ -400,6 +458,7 @@ export {loginUser,
     logoutUser,
     refreshAccessToken,
     updatePassword,
-    forceResetPassword
+    forceResetPassword,
+    updateUserDetails
 }; 
 
