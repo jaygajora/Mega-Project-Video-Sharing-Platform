@@ -437,6 +437,88 @@ const updateUserDetails = AsyncHandler(async(req, res) => {
     )
 })
 
+const updateAvatar = AsyncHandler(async(req, res) => {
+    
+    if(!req.file){
+        throw new ApiError(400, "Avatar file is missing!");
+    }
+
+    console.log("Uploaded new Avatar:")
+    console.log(req.file);
+
+    const avatarLocalPath = req.file.path;
+
+    if(!avatarLocalPath){
+        throw new ApiError(400, "Local Path for Avatar file is MISSING!");
+    }
+
+    const avatar = await uploadToCloudinary(avatarLocalPath);
+
+    if(!avatar){
+        throw new ApiError(500, "Something went wrong while uploading the file to Cloudinary.");
+    }
+    
+    const user = req.user;
+
+    const oldAvatar = user.avatar;
+
+    user.avatar = avatar.url;
+    await user.save({validateBeforeSave : false});
+
+    return res
+    .status(200)
+    .json(
+        new ApiResponse(
+            201,
+            "Avatar updated successfully!",
+            {
+                "Old Avatar: " : oldAvatar,
+                "New Avatar: " : user.avatar
+            }
+        )
+    )
+})
+
+const updateCoverImage = AsyncHandler(async(req, res) => {
+    
+    if(!req.file){
+        throw new ApiError(400, "No File found, please re-upload your Cover Image");
+    }
+
+    const coverImageLocalPath = req.file.path;
+
+    if(!coverImageLocalPath){
+        throw new ApiError(401, "Local Path for CoverImage not Found");
+    }
+
+    const coverImage = await uploadToCloudinary(coverImageLocalPath);
+
+    if(!coverImage){
+        throw new ApiError(500, "Something went wrong while uploading file to Cloudinary");
+    }
+
+    const user = req.user;
+    
+    const oldCoverImage = user.coverImage;
+
+    user.coverImage = coverImage.url;    // updating coverImage with the new one
+
+    await user.save({validateBeforeSave : false});
+
+    res
+    .status(200)
+    .json(
+        new ApiResponse(
+            201,
+            "Cover Image Updated Successfully!",
+            {
+                "oldCoverImage" : oldCoverImage,
+                "newCoverImage" : user.coverImage 
+            }
+        )
+    )
+})
+
 const forceResetPassword = AsyncHandler((req, res) =>{
     const user = req.user;
     user.password = "temp";
@@ -459,6 +541,8 @@ export {loginUser,
     refreshAccessToken,
     updatePassword,
     forceResetPassword,
-    updateUserDetails
+    updateUserDetails, 
+    updateAvatar,
+    updateCoverImage
 }; 
 
