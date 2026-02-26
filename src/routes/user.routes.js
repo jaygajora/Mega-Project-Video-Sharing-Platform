@@ -1,5 +1,5 @@
 import {Router} from "express";
-import {registerUser, updateUserDetails, updateAvatar, updateCoverImage} from "../controllers/user.controller.js";
+import {registerUser, updateUserDetails, updateAvatar, updateCoverImage, getProfileDetails, getWatchHistory, getUserProfileDetails} from "../controllers/user.controller.js";
 import {loginUser} from "../controllers/user.controller.js";
 import upload from "../middlewares/multer.middleware.js";
 import { verifyJWT } from "../middlewares/auth.middleware.js";
@@ -38,6 +38,7 @@ router.route("/refreshTokens").post(refreshAccessToken);
 router.route("/updatePassword").post(verifyJWT, updatePassword);
 router.route("/force-reset-password").post(verifyJWT, forceResetPassword);
 router.route("/update-user-details").post(verifyJWT, updateUserDetails);
+router.route("/profile").get(verifyJWT, getProfileDetails);
 
 router.route("/update-avatar").post(
     verifyJWT, 
@@ -49,5 +50,8 @@ router.route("/update-cover-image").post(
     upload.single("coverImage"),
     updateCoverImage
 )
+
+router.route("/channel/:username").get(verifyJWT, getUserProfileDetails);
+router.route("/watchHistory").get(verifyJWT, getWatchHistory)
 
 export default router;   // since this has been exported as default, we can import it with any name in app.js, we will import it as userRouter in app.js and use it as a middleware for the /api/v1/users route, this way all the routes defined in this file will be prefixed with /api/v1/users, for example if we define a route for /register in this file, it will be accessible at /api/v1/users/register in the client side

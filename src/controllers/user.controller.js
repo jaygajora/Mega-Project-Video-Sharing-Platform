@@ -4,7 +4,8 @@ import {User} from "../models/user.model.js";
 import { uploadToCloudinary } from "../utils/cloudinary.js";
 import { ApiResponse } from "../utils/ApiResponse.js";
 import bcrypt from "bcrypt";
-import jwt from "jsonwebtoken"
+import jwt from "jsonwebtoken";
+import mongoose from "mongoose";
 import { verifyJWT } from "../middlewares/auth.middleware.js";
 
 const generateAccessAndRefreshTokens =  async (user) => {
@@ -519,7 +520,166 @@ const updateCoverImage = AsyncHandler(async(req, res) => {
     )
 })
 
-const forceResetPassword = AsyncHandler((req, res) =>{
+const getProfileDetails = AsyncHandler(async(req, res) => {
+    const user = req.user;
+
+    res
+    .status(200)
+    .json(
+        new ApiResponse(
+            201,
+            "User details fetch successfully",
+            user
+        )
+    )
+})
+
+const getUserProfileDetails = AsyncHandler(async(req, res) => {
+    const {username} = req.params;
+
+    if(!username?.trim()){
+        throw new ApiError(400, "No username found");
+    }
+
+    // const user = await User.find({username : username});
+
+    const channel = await User.aggregate([
+        {
+            $match : {username : username?.toLowerCase()}
+        }, 
+        {
+            $lookup : {
+                from: "subscriptions",
+                localField: "_id",
+                foreignField: "channel",
+                as : "subscribers"
+            } 
+        }, 
+        {
+            $lookup: {
+                from: "subscriptions",
+                localField: "_id",
+                foreignField: "subscriber",
+                as: "subscribedTo"  
+            }
+        }, 
+        {
+            $addFields : {
+                subscribersCount : {
+                    $size : "$subscribers"
+                },
+                subscribedToCount : {
+                    $size : "$subscribedTo"
+                },
+                hasSubscribed : {
+                    $cond : {
+                        if : {
+                            $in: [req.user?._id, "$subscribers.subscriber"]
+                        },
+                        then : true,
+                        else : false
+                    }
+                }
+            }
+        },
+        {
+            $project: {
+                fullName: 1,
+                username: 1,
+                email: 1,
+                avatar: 1,
+                coverImage: 1,
+                subscribersCount: 1,
+                subscribedToCount: 1,
+                hasSubscribed: 1
+            }
+        }
+    ]);
+
+    if(!channel){
+        throw new ApiError(400, "Something went wrong in the pipeline");
+    }
+
+    if(channel.length == 0){
+        throw new ApiError(400, "Channel NOT FOUND");
+    }
+
+    console.log(channel);
+
+    res
+    .status(200)
+    .json(
+        new ApiResponse(
+            201,
+            "Channel Details fetched SUCCESSFULLY!",
+            {
+                channel : channel[0]
+            }
+        )
+    )
+})
+
+const getWatchHistory = AsyncHandler(async(req, res) => {
+
+    if(!req.user){
+        throw new ApiError(401, "No user found | User NOT LoggedIn")
+    }
+
+    const user = await User.aggregate([
+        {
+            $match : {_id : new mongoose.Types.ObjectId(req.user._id)}
+        }, 
+        {
+            $lookup: {
+                from : "videos",
+                localField: "watchHistory",
+                foreignField: "_id",
+                as: "watchHistory",
+                pipeline : [
+                    {
+                        $lookup : {                   // subpipeline
+                            from: "users",
+                            localField: "owner",
+                            foreignField: "_id",
+                            as: "owner",
+                            pipeline : [
+                                {
+                                    $project: {
+                                        username : 1,
+                                        fullName: 1,
+                                        avatar: 1,  
+                                    }
+                                }
+                            ]
+                        }
+                    },
+                    {
+                        $addFields: {
+                            owner : { $first : "$owner" }
+                        }
+                    }
+                ]
+            }
+        }
+    ])
+
+    if(user.length == 0){
+        throw new ApiError(400, "User NOT FOUND | Something went wrong while creating the watchHistory pipeline")
+    }
+
+    res
+    .status(200)
+    .json(
+        new ApiResponse(
+            200,
+            "Watch history fetched successfully",
+            user[0].watchHistory
+        )
+    )
+})
+
+const forceResetPassword = AsyncHandler(async(req, res) =>{
+    
     const user = req.user;
     user.password = "temp";
     user.save({validationBeforeSave : false});
@@ -543,6 +703,9 @@ export {loginUser,
     forceResetPassword,
     updateUserDetails, 
     updateAvatar,
-    updateCoverImage
+    updateCoverImage,
+    getProfileDetails,
+    getUserProfileDetails,
+    getWatchHistory
 }; 
 
