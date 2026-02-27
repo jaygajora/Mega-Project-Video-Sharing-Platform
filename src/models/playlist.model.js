@@ -4,15 +4,20 @@ const playlistSchema = new mongoose.Schema({
     name: {
         type: String,
         required: true,
-        index: true
+        index: true,
+        trim: true
     },
     description: {
-        type: String
+        type: String,
+        required: true,
+        trim: true
     },
-    videos: {
-        type: mongoose.Schema.Types.ObjectId,
-        ref: "Video"
-    },
+    videos: [
+        {
+            type: mongoose.Schema.Types.ObjectId,
+            ref: "Video"
+        }
+    ],
     owner: {
         type: mongoose.Schema.Types.ObjectId,
         ref: "User"

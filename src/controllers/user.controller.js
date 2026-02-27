@@ -206,10 +206,10 @@ const loginUser = AsyncHandler(async (req, res) => {
 const logoutUser = AsyncHandler(async (req, res) =>{
 
     try {
-        await User.findByIdAndUpdate(
+        const user = await User.findByIdAndUpdate(
             req.user._id,
             {
-                $set: { refreshToken: undefined }
+                $set: { refreshToken: null }   // OR $unset: { refreshToken: 1 } removes the field from document
             },
             {
                 new: true
@@ -229,7 +229,7 @@ const logoutUser = AsyncHandler(async (req, res) =>{
             new ApiResponse(
                 200, 
                 "User Logged Out Successfully",
-                {}
+                user
             )
         )
     } catch (error) {
