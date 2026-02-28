@@ -5,7 +5,6 @@ import { User } from "../models/user.model.js";
 import { Tweets } from "../models/tweet.model.js";
 import mongoose from "mongoose"
 
-
 const createTweet = AsyncHandler(async(req, res) => {
     const { username } = req.user;
     const { content } = req.body;
@@ -46,8 +45,6 @@ const createTweet = AsyncHandler(async(req, res) => {
             tweet
         )
     )
-
-
 })
 
 const getUserTweets = AsyncHandler(async(req, res) => {
@@ -56,7 +53,6 @@ const getUserTweets = AsyncHandler(async(req, res) => {
     if(!username || username == undefined || username.trim() == ""){
         throw new ApiError(300, "Please mention the username to extract tweets of a particular user")
     }
-
 
     const user = await User.findOne({ username : username.toLowerCase() });
 
@@ -160,7 +156,6 @@ const deleteTweet = AsyncHandler(async(req, res) => {
             }
         )
     )
-
 })
 
 

@@ -32,6 +32,8 @@ app.get(("/"), (req, res) => {
 import userRouter from "./routes/user.routes.js";
 import videoRouter from "./routes/video.route.js";
 import tweetRouter from "./routes/tweet.route.js";
+import commentRouter from "./routes/comment.route.js";
+import channelRouter from "./routes/channel.route.js";
 
 
 // declaring routes
@@ -40,9 +42,9 @@ app.use("/api/v1/user", userRouter);   // once any user hites any route that sta
 
 
 app.use("/api/v1/video", videoRouter);
-
 app.use("/api/v1/tweets", tweetRouter);
-
+app.use("/api/v1/comments", commentRouter);
+app.use("/api/v1/channel", channelRouter);
 
 
 // app.listen(port, () => {

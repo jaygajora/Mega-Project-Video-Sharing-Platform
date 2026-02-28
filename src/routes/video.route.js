@@ -21,6 +21,7 @@ router.route("/").get(async(req, res) => {
 
 // router.route("/").get(verifyJWT, getAllVideos);
 
+
 router.route("/").post(
     verifyJWT,
     upload.fields(

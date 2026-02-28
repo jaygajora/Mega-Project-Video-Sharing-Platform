@@ -1,99 +1,131 @@
 import { AsyncHandler } from "../utils/AsyncHandler.js";
 import { ApiError } from "../utils/ApiError.js";
-import { ApiResponse } from "../utils/ApiResponse";
+import { ApiResponse } from "../utils/ApiResponse.js";
 import { User } from "../models/user.model.js";
+import { Video } from "../models/video.model.js";
 
-const getChannelDetails = AsyncHandler(async(req, res) => {
+// const getChannelDetails = AsyncHandler(async(req, res) => {
+//     const { username } = req.params;
+
+//     if(!username?.trim()){
+//         throw new ApiError(400, "No username found");
+//     }
+
+//     const user = await User.find({username : username});
+
+//     if(!user){
+//         throw new ApiError(400, "No user channel found!");
+//     }
+
+//     const channel = await User.aggregate([
+//         {
+//             $match : {username : username?.toLowerCase()}
+//         }, 
+//         {
+//             $lookup : {
+//                 from: "subscriptions",
+//                 localField: "_id",
+//                 foreignField: "channel",
+//                 as : "subscribers"
+//             } 
+//         }, 
+//         {
+//             $lookup: {
+//                 from: "subscriptions",
+//                 localField: "_id",
+//                 foreignField: "subscriber",
+//                 as: "subscribedTo"  
+//             }
+//         }, 
+//         {
+//             $addFields : {
+//                 subscribersCount : {
+//                     $size : "$subscribers"
+//                 },
+//                 subscribedToCount : {
+//                     $size : "$subscribedTo"
+//                 },
+//                 hasSubscribed : {
+//                     $cond : {
+//                         if : {
+//                             $in: [req.user?._id, "$subscribers.subscriber"]
+//                         },
+//                         then : true,
+//                         else : false
+//                     }
+//                 }
+//             }
+//         },
+//         {
+//             $project: {
+//                 fullName: 1,
+//                 username: 1,
+//                 description: 1,
+//                 // email: 1,
+//                 avatar: 1,
+//                 coverImage: 1,
+//                 subscribersCount: 1,
+//                 subscribedToCount: 1,
+//                 hasSubscribed: 1     // if(username is == req.user.username, dont display the subscribed button)
+//             }
+//         }
+//     ]);
+
+//     if(!channel){
+//         throw new ApiError(400, "Something went wrong in the pipeline");
+//     }
+
+//     if(channel.length == 0){
+//         throw new ApiError(400, "Channel NOT FOUND");
+//     }
+
+//     console.log(channel);
+
+//     res
+//     .status(200)
+//     .json(
+//         new ApiResponse(
+//             201,
+//             "Channel Details fetched SUCCESSFULLY!",
+//             {
+//                 channel : channel[0]
+//             }
+//         )
+//     )
+// })
+
+const getChannelVideos = AsyncHandler(async(req, res) => {
     const { username } = req.params;
 
-    if(!username?.trim()){
-        throw new ApiError(400, "No username found");
+    if(!username || username.trim() == ""){
+        throw new ApiError(400, "Username is EMPTY!")
     }
 
-    const user = await User.find({username : username});
+    const user = await User.findOne({ username : username });
 
     if(!user){
-        throw new ApiError(400, "No user channel found!");
+        throw new ApiError(400, "No such user found | User does not EXIST");
     }
 
-    const channel = await User.aggregate([
-        {
-            $match : {username : username?.toLowerCase()}
-        }, 
-        {
-            $lookup : {
-                from: "subscriptions",
-                localField: "_id",
-                foreignField: "channel",
-                as : "subscribers"
-            } 
-        }, 
-        {
-            $lookup: {
-                from: "subscriptions",
-                localField: "_id",
-                foreignField: "subscriber",
-                as: "subscribedTo"  
-            }
-        }, 
-        {
-            $addFields : {
-                subscribersCount : {
-                    $size : "$subscribers"
-                },
-                subscribedToCount : {
-                    $size : "$subscribedTo"
-                },
-                hasSubscribed : {
-                    $cond : {
-                        if : {
-                            $in: [req.user?._id, "$subscribers.subscriber"]
-                        },
-                        then : true,
-                        else : false
-                    }
-                }
-            }
-        },
-        {
-            $project: {
-                fullName: 1,
-                username: 1,
-                description: 1,
-                // email: 1,
-                avatar: 1,
-                coverImage: 1,
-                subscribersCount: 1,
-                subscribedToCount: 1,
-                hasSubscribed: 1     // if(username is == req.user.username, dont display the subscribed button)
-            }
-        }
-    ]);
+    // (PENDING) : add the published/unpublished logic
+    const videosByUser = await Video.find({ owner : user._id }); // this will return an array of videos uploaded by the user
 
-    if(!channel){
-        throw new ApiError(400, "Something went wrong in the pipeline");
+    if(!videosByUser){
+        throw new ApiError(400, `No videos have been upload by the user ${user.username}!`);
     }
-
-    if(channel.length == 0){
-        throw new ApiError(400, "Channel NOT FOUND");
-    }
-
-    console.log(channel);
 
     res
     .status(200)
     .json(
         new ApiResponse(
-            201,
-            "Channel Details fetched SUCCESSFULLY!",
-            {
-                channel : channel[0]
-            }
+            200,
+            `Videos uploaded by ${user.username} fetched successfully`,
+            videosByUser
         )
-    )
+    )    
 })
 
-
 export {
-    getChannelDetails
+    // getChannelDetails,
+    getChannelVideos
 }
