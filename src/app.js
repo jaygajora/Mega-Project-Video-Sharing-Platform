@@ -31,6 +31,7 @@ app.get(("/"), (req, res) => {
 // importing routes
 import userRouter from "./routes/user.routes.js";
 import videoRouter from "./routes/video.route.js";
+import tweetRouter from "./routes/tweet.route.js";
 
 
 // declaring routes
@@ -39,6 +40,8 @@ app.use("/api/v1/user", userRouter);   // once any user hites any route that sta
 
 
 app.use("/api/v1/video", videoRouter);
+
+app.use("/api/v1/tweets", tweetRouter);
 
 
 

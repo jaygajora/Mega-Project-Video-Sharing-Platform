@@ -1,4 +1,8 @@
 # This is a mega project where we are making a app like youtube
+ 
+ [Model](https://app.eraser.io/workspace/YtPqZ1VogxGy1jzIDkzj)
+ 
+
  npm i -D nodemon 
  npm i -D prettier
  This installs a development dependency and not just a dependency. The difference between the both is that dev dependecies do not go into production.

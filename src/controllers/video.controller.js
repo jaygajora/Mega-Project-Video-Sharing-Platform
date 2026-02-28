@@ -3,15 +3,43 @@ import { ApiError } from "../utils/ApiError.js";
 import { ApiResponse } from "../utils/ApiResponse.js";
 import { uploadToCloudinary } from "../utils/cloudinary.js";
 import { Video } from "../models/video.model.js";
-
-const getAllVideos = AsyncHandler(async(req, res) => {
-
-});
+import { User } from "../models/user.model.js";
 
 
+// PENDING: getAllVideos()
 
+// const getAllVideos = AsyncHandler(async(req, res) => {
+//     const { username } = req.params;
 
+//     // get 'username' from req.params
+//     // find userId of this username 
+//     // in 'Video' model, search for videos whose owner = userId
+//     // for these videos return the videos which are PUBLISHED!!
+    
+//     if(!username){
+//         throw new ApiError(400, "Invalid username for the channel you are looking for");
+//     }
 
+//     const user = await User.findOne({ username : username});
+
+//     if(!user){
+//         throw new ApiError(400, `No userfound with username ${username}`)
+//     }
+
+//     const userId = user._id;
+
+//     const videos = await Video.find({ owner : userId, isPublished : true });    // this will give you an array of objects, i.e. [{}, {}, {}]
+    
+//     res
+//     .status(200)
+//     .json(
+//         new ApiResponse(
+//             200,
+//             `All the videos for username : ${username} fetched successsfully!`,
+//             videos
+//         )
+//     )
+// });
 
 
 const publishAVideo = AsyncHandler(async(req, res) => {
@@ -85,7 +113,7 @@ const publishAVideo = AsyncHandler(async(req, res) => {
         {
             videoFile: videoFile.url,
             thumbnail: thumbnail.url,
-            owner: user._id,
+            owner: user,
             title: title.trim(),
             description: description.trim(),
             duration: duration,
@@ -254,12 +282,54 @@ const deleteVideo = AsyncHandler(async(req, res) => {
     )
 });
 
+const togglePublishStatus = AsyncHandler(async(req, res) => {
+    const  { videoId } = req.params;
+    
+    if(!videoId){
+        throw new ApiError(400, "Invalid Video Id");
+    }
+
+    const video = await Video.findById(videoId);
+
+    if(!video){
+        throw new ApiError(300, `No video found with videoIUd ${videoId}`);
+    }
+
+    const isVideoPublished = video.isPublished;
+
+    video.isPublished = !isVideoPublished;
+    
+    const toggledPublishedVideo = await Video.findByIdAndUpdate(
+        video._id,
+        {
+            isPublished : !isVideoPublished
+        },
+        {
+            new : true
+        }
+    )
+
+    if(!toggledPublishedVideo){
+        throw new ApiError(400, "Something went wrong while toggling the published video status!");
+    }
+
+    res
+    .status(200)
+    .json(
+        new ApiResponse(
+            200,
+            "Toggled Video Published Status",
+            toggledPublishedVideo
+        )
+    )
+})
 
 export {
-    getAllVideos,
+    // getAllVideos,
     publishAVideo,
     getVideoById,
     updateVideo,
-    deleteVideo
+    deleteVideo,
+    togglePublishStatus
 }
 
