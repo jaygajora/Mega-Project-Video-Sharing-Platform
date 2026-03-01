@@ -34,6 +34,7 @@ import videoRouter from "./routes/video.route.js";
 import tweetRouter from "./routes/tweet.route.js";
 import commentRouter from "./routes/comment.route.js";
 import channelRouter from "./routes/channel.route.js";
+import likeRouter from "./routes/like.route.js";
 
 
 // declaring routes
@@ -45,6 +46,7 @@ app.use("/api/v1/video", videoRouter);
 app.use("/api/v1/tweets", tweetRouter);
 app.use("/api/v1/comments", commentRouter);
 app.use("/api/v1/channel", channelRouter);
+app.use("/api/v1/like", likeRouter);
 
 
 // app.listen(port, () => {
