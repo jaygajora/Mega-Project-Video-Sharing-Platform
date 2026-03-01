@@ -86,11 +86,86 @@ const addComment = AsyncHandler(async(req, res) => {
 })
 
 const updateComment = AsyncHandler(async(req, res) => {
+    const { commentId } = req.params;
+    const { content } = req.body;
+
+    if(!commentId){
+        throw new ApiError(400, "Comment Id is missing!");
+    }
+
+    if(!mongoose.isValidObjectId(commentId)){
+        throw new ApiError(400, "Comment Id is not valid (Length/hex pattern/format/objecId validity)");
+    }
+
+    const comment = await Comment.findById(commentId);
+
+    if(!comment){
+        throw new ApiError(404, "COMMENT DOES NOT EXISTS!");
+    }
+
+    if(!content || content.trim() === ""){
+        throw new ApiError(300, "Content cannot be Empty!")
+    }
+
+    if(comment.content === content){
+        throw new ApiError(400, "Content is same as before, nothing to update!");
+    }
+
+    const newComment = await Comment.findByIdAndUpdate(
+        commentId,
+        {
+            $set: {
+                content: content
+            }
+        },
+        {
+            new: true
+        }
+    )
+
+    res
+    .status(200)
+    .json(
+        new ApiResponse(
+            200,
+            "Comment has been UPDATED SUCCESSFULLY!",
+            {
+                oldComment: comment,
+                newComment: newComment
+            }
+        )
+    )
 
 })
 
 const deleteComment = AsyncHandler(async(req, res) => {
+    const { commentId } = req.params;
 
+    if(!commentId || commentId.trim() === ""){
+        throw new ApiError(400, "Comment Id is MISSING!");
+    }
+
+    if(!mongoose.isValidObjectId(commentId)){
+        throw new ApiError(400, "Comment Id is not Valid (Length/Hex Pattern/Format/ObjectiD Validity)");
+    }
+
+    const comment = await Comment.findById(commentId);
+
+    if(!comment){
+        throw new ApiError(404, "COMMENT DOES NOT EXISTS!");
+    }
+
+    await Comment.findByIdAndDelete(commentId);
+
+    res
+    .status(200)
+    .json(
+        new ApiResponse(
+            200, 
+            "Comment DELETED SUCCESSFULLY!",
+            comment
+        )
+    )
 })
 
 export {
