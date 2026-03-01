@@ -216,8 +216,13 @@ const updateVideo = AsyncHandler(async(req, res) => {
 
     const oldVideo = await Video.findById(videoId);
 
-    video.title = title.trim();
-    video.description = description.trim();
+    if(title){
+        video.title = title.trim();
+    }
+
+    if(description){
+        video.description = description.trim();
+    }
 
     if(thumbnail){
         video.thumbnail = thumbnail.url;

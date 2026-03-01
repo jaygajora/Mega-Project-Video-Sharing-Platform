@@ -3,6 +3,7 @@ import { ApiError } from "../utils/ApiError.js";
 import { ApiResponse } from "../utils/ApiResponse.js";
 import { User } from "../models/user.model.js";
 import { Video } from "../models/video.model.js";
+import { Comment } from "../models/comment.model.js";
 
 // const getChannelDetails = AsyncHandler(async(req, res) => {
 //     const { username } = req.params;
@@ -125,7 +126,42 @@ const getChannelVideos = AsyncHandler(async(req, res) => {
     )    
 })
 
+const getCommentsByUser = AsyncHandler(async(req, res) => {
+    const { username } = req.params;
+
+    if(!username){
+        throw new ApiError(300, "Username/Channel Name is MISSING!");
+    }
+
+    if(username.trim() == ""){
+        throw new ApiError(400, "Username/Channel Name is EMPTY!");
+    }
+
+    const user = await User.findOne({ username : username.toLowerCase().trim() });
+
+    if(!user){
+        throw new ApiError(404, "USER DOES NOT EXISTS!");
+    }
+
+    const commentsByUser = await Comment.find({ owner : user._id });
+
+    if(!commentsByUser){
+        throw new ApiError(400, `No comments have been added by user ${user.username}`);
+    }
+
+    res
+    .status(200)
+    .json(
+        new ApiResponse(
+            200,
+            `Comments by user: ${user.username} retrived successfully!`,
+            commentsByUser
+        )
+    )
+})
+
 export {
     // getChannelDetails,
-    getChannelVideos
+    getChannelVideos,
+    getCommentsByUser
 }
