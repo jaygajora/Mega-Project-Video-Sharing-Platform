@@ -4,9 +4,11 @@ import { ApiResponse } from "../utils/ApiResponse.js";
 import { User } from "../models/user.model.js";
 import { Playlist } from "../models/playlist.model.js";
 import { Video } from "../models/video.model.js";
+import mongoose from "mongoose";
 
 const addVideoToPlaylist = AsyncHandler(async(req, res) => {
-    const { videoId, playlistId } = req.params;  // videoId will be an array
+    let { videoId, playlistId } = req.params;  // videoId will be an array
+    // const { videoId } = req.body;
 
     if(!videoId){
         throw new ApiError(400, "Video Id is MISSING!");
@@ -16,8 +18,23 @@ const addVideoToPlaylist = AsyncHandler(async(req, res) => {
         throw new ApiError(400, "PlaylistId is MISSING!");
     }
 
-    for(let i = 0; i < videoId.length; i++){
-        let currentVideoId = videoId[i];
+    console.log(videoId);
+    
+    if(videoId.length <= 2){
+        throw new ApiError(300, "No video selected to be added to the playlist")
+    }
+
+    // videoId = "["videoId1", "videoId2"]"   -> by default video id will be a string
+
+    videoId = videoId.substring(1, videoId.length - 1);     // we are removing the outer brackets, output -> "videoId1", "videoId2"
+    console.log(videoId);
+
+    let videoIds = videoId.split(",");   //now converting the rest of the string to an array which is split by ","
+    //videoIds = ["videoId1", "videoId2"]
+
+    for(let i = 0; i < videoIds.length; i++){
+        let currentVideoId = videoIds[i];
+        console.log(currentVideoId);
         if(!mongoose.isValidObjectId(currentVideoId)){
             throw new ApiError(400, "Video Id is INVALID (Length/Hex Pattern/Format/ObjectId Validity)");
         }
@@ -33,10 +50,12 @@ const addVideoToPlaylist = AsyncHandler(async(req, res) => {
         throw new ApiError(404, "PLAYLIST DOES NOT EXISTS!");
     }
 
-    const videosInPlaylist = playlist.videos;    // this will be an array of objects
+    let videosInPlaylist = playlist.videos;    // this will be an array of objects
+    console.log(videosInPlaylist);
 
-    for(let i = 0; i < videoId.length; i++){
-        let currentVideoId = videoId[i];
+    for(let i = 0; i < videoIds.length; i++){
+        let currentVideoId = videoIds[i];
+
         let video = await Video.findById(currentVideoId);
         
         if(!video){
@@ -62,8 +81,8 @@ const addVideoToPlaylist = AsyncHandler(async(req, res) => {
 
     let message = `1 video added to playlist: ${playlist.name}`;
 
-    if(videoId.length > 1){
-        message = `${videoId.length} videos added to playlist: ${playlist.name}`
+    if(videoIds.length > 1){
+        message = `${videoIds.length} videos added to playlist: ${playlist.name}`
     }
 
     res
@@ -72,7 +91,7 @@ const addVideoToPlaylist = AsyncHandler(async(req, res) => {
         new ApiResponse(
             200, 
             message,
-            updatePlaylist
+            updatedPlaylist
         )
     )
 });
@@ -88,7 +107,7 @@ const removeVideoFromPlaylist = AsyncHandler(async(req, res) => {
         throw new ApiError(400, "PlaylistId is MISSING!");
     }
 
-    if(!mongoose.isValidObjectId(currentVideoId)){
+    if(!mongoose.isValidObjectId(videoId)){
         throw new ApiError(400, "Video Id is INVALID (Length/Hex Pattern/Format/ObjectId Validity)");
     }
 
@@ -104,9 +123,13 @@ const removeVideoFromPlaylist = AsyncHandler(async(req, res) => {
 
     const videosInPlaylist = playlist.videos;    // this will be an array of objects
 
-    const updatedVideosInPlaylistAfterDeletion = videosInPlaylist.filter((currentVideo) => currentVideo._id !== videoId);
+    const OG_No_Of_Videos = videosInPlaylist.length;
 
-    if(!updatedVideosInPlaylistAfterDeletion){
+    const updatedVideosInPlaylistAfterDeletion = videosInPlaylist.filter((currentVideoId) => currentVideoId.toString() != videoId);   // this will not be === because currentVideo._id is an ObjectId and videoId is a string
+
+    const newNoOfVideos = updatedVideosInPlaylistAfterDeletion.length;
+
+    if(OG_No_Of_Videos == newNoOfVideos){   
         throw new ApiError(400, "Something went wrong while deleting the video form playlist");
     }
 
@@ -134,7 +157,7 @@ const removeVideoFromPlaylist = AsyncHandler(async(req, res) => {
     .json(
         new ApiResponse(
             200,
-            `Video deleted successfully from playlist: ${playlist.name}`,
+            `Video REMOVED successfully from playlist: ${playlist.name}`,
             updatedPlaylist
         )
     )
@@ -241,10 +264,10 @@ const deletePlaylist = AsyncHandler(async(req, res) => {0
         throw new ApiError(404, "PLAYLIST DOES NOT EXISTS!");
     }
 
-    const deleted = await Playlist.findByIdAndDelete(playlistId);
-
-    if(deleted){
-        throw new ApiError(500, "Something went wrong while deleting the Playlist");
+    try {
+        await Playlist.findByIdAndDelete(playlistId);
+    } catch (error) {
+        throw new ApiError(500, `Something went wrong while deleting the Playlist: ${playlist.name} & Error: ${error}`);
     }
 
     res
@@ -284,7 +307,7 @@ const getUserPlaylist = AsyncHandler(async(req, res) => {
     .json(
         new ApiResponse(
             200, 
-            `Playlists for ${usernaame} FETCHED SUCCESSFULLY!`,
+            `Playlists for ${username} FETCHED SUCCESSFULLY!`,
             userPlayLists
         )
     )

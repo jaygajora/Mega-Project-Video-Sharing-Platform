@@ -12,7 +12,7 @@ import {
 
 const router = Router();
 
-router.route("/").post(createPlaylist);
+router.route("/").post(verifyJWT, createPlaylist);
 
 router.route("/:playlistId").get(verifyJWT, getPlaylistById);
 router.route("/:playlistId").patch(verifyJWT, updatePlaylist);
@@ -21,6 +21,6 @@ router.route("/:playlistId").delete(verifyJWT, deletePlaylist);
 router.route("/add/:videoId/:playlistId").post(verifyJWT, addVideoToPlaylist);
 router.route("/remove/:videoId/:playlistId").post(verifyJWT, removeVideoFromPlaylist);
 
-router.route("/user/:userId").get(verifyJWT, getUserPlaylist);
+router.route("/user/:username").get(verifyJWT, getUserPlaylist);
 
 export default router;
