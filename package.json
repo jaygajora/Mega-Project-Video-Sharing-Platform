@@ -20,6 +20,7 @@
     "prettier": "^3.8.1"
   },
   "dependencies": {
+    "@leetnotion/leetcode-api": "^1.10.0",
     "bcrypt": "^6.0.0",
     "cloudinary": "^2.9.0",
     "cookie-parser": "^1.4.7",

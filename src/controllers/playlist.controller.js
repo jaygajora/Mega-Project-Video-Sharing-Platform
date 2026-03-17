@@ -244,6 +244,9 @@ const getPlaylistById = AsyncHandler(async(req, res) => {
 
 const updatePlaylist = AsyncHandler(async(req, res) => {
     // do we really need this?
+
+    // UPDATE NAME OF PLAYLIST
+    // UPDATE DESCRIPTION OF PLAYLIST
 });
 
 const deletePlaylist = AsyncHandler(async(req, res) => {0
