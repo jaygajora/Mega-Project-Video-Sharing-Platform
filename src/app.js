@@ -36,6 +36,7 @@ import commentRouter from "./routes/comment.route.js";
 import channelRouter from "./routes/channel.route.js";
 import likeRouter from "./routes/like.route.js";
 import playlistRouter from "./routes/playlist.route.js";
+import leetcodeRouter from "./routes/leetcode.routes.js";
 
 
 // declaring routes
@@ -49,6 +50,7 @@ app.use("/api/v1/comments", commentRouter);
 app.use("/api/v1/channel", channelRouter);
 app.use("/api/v1/like", likeRouter);
 app.use("/api/v1/playlist", playlistRouter);
+app.use("/api/v1/leetcode", leetcodeRouter);
 
 
 // app.listen(port, () => {

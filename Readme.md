@@ -39,3 +39,6 @@ Earlier we required middleware such as 'body-parser' to take data as an input bu
 
 [Status codes](image.png)
 This is why we use `this.success' = statusCode < 400 in the ApiResponse class because the status code from [400, 599] are for errors. (This is the standard practice). 
+
+
+Whisper AI CLI: pip install -U openai-whisper

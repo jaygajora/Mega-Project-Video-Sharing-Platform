@@ -4,7 +4,9 @@ import { ApiResponse } from "../utils/ApiResponse.js";
 import { uploadToCloudinary } from "../utils/cloudinary.js";
 import { Video } from "../models/video.model.js";
 import { User } from "../models/user.model.js";
-
+import { extractAudioFromVideo } from "../ai-features/extractAudio.js";
+import { transcribeAudioToText } from "../ai-features/transcribeAudio.js";
+import fs from "fs";
 
 // PENDING: getAllVideos()
 
@@ -81,8 +83,12 @@ const publishAVideo = AsyncHandler(async(req, res) => {
         throw new ApiError(400, "Thumbnail local path NOT found!")
     }
 
-    const videoFile = await uploadToCloudinary(videoFileLocalPath);
-    const thumbnail = await uploadToCloudinary(thumbnailLocalPath);
+    // const videoFileLocalPath1 = videoFileLocalPath;
+
+    const videoFile = await uploadToCloudinary(videoFileLocalPath, "Video");
+    const thumbnail = await uploadToCloudinary(thumbnailLocalPath, "Image");
+
+    // console.log(videoFile);
 
     if(!videoFile){
         throw new ApiError(500, "Something went wrong while uploading the Video File on Cloudinary!");
@@ -92,11 +98,16 @@ const publishAVideo = AsyncHandler(async(req, res) => {
         throw new ApiError(500, "Something went wrong while uploading Thumbnail on Cloudinary!")
     }
 
-    if(videoFile.resource_type != "video"){
+
+
+    // console.log(videoFile);
+    console.log("Video File Resource Type: " + videoFile.resource_type);
+
+    if(videoFile.resource_type !== "video"){
         throw new ApiError(300, "Video File should be of VIDEO format")
     }
 
-    if(thumbnail.resource_type != "image"){
+    if(thumbnail.resource_type !== "image"){
         throw new ApiError(300, "Thumbnail should be an IMAGE!");
     }
 
@@ -106,8 +117,31 @@ const publishAVideo = AsyncHandler(async(req, res) => {
         throw new ApiError(300, "Video Should be longer than 5 seconds!")
     }
 
+    let transcription = null;
+    let audioFilePath = null;
 
-    console.log(videoFile);
+    if(videoFile.resource_type === "video"){
+        audioFilePath = await extractAudioFromVideo(videoFileLocalPath);
+        transcription = await transcribeAudioToText(audioFilePath);
+        console.log("Transcription: " + transcription);
+    }
+
+
+    try{
+        if(videoFileLocalPath && fs.existsSync(videoFileLocalPath)){
+            fs.unlinkSync(videoFileLocalPath);    // delete the local video file after uploading it to cloudinary
+        }
+
+        if(thumbnailLocalPath && fs.existsSync(thumbnailLocalPath)){
+            fs.unlinkSync(thumbnailLocalPath);   // delete the local thumbnail file after uploading it to cloudinary
+        }
+    }
+    catch(error){
+        console.log("Error while deleting local files: " + error);
+        throw new ApiError(500, "Something went wrong while deleting the local files!")
+    }
+
+    // console.log(videoFile);
 
     const video = await Video.create(
         {
@@ -126,12 +160,16 @@ const publishAVideo = AsyncHandler(async(req, res) => {
         throw new ApiError(500, "Something went wrong while adding the video to Database! Please try again.");
     }
 
+    // const audioFilePath = await extractAudioFromVideo(videoFileLocalPath1 || videoFile.path);
+    // const transcription = await transcribeAudioToText(audioFilePath);
+    // console.log("Transcription: " + transcription);
+
     res
     .status(200)
     .json(
         new ApiResponse(
             200,
-            "Testing Uploading a video",
+            "Video uploaded successfully!",
             video
         )
     )

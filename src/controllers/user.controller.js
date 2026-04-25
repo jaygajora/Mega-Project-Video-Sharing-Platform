@@ -32,6 +32,86 @@ const generateAccessAndRefreshTokens =  async (user) => {
     }
 }
 
+const refreshAccessToken = AsyncHandler(async (req, res) => {
+
+    if(!req.cookies.refreshToken && !req.body.refreshToken){
+        throw new ApiError(401, "Unauthorized Request | User is NOT Logged In!");
+    }
+
+    const incomingRefreshToken = req.cookies.refreshToken || req.body.refreshToken;
+
+    // if(!incomingRefreshToken){
+    //     throw new ApiError(401, "Unauthorized request | No refreshTokens found in cookies");
+    // }
+
+    try {
+        const decodedRefreshToken = jwt.verify(incomingRefreshToken, process.env.REFRESH_TOKEN_SECRET);
+    
+        if(!decodedRefreshToken){
+            return new ApiError(400, "Invalid Refresh Token!");
+        }
+    
+        const user = await User.findById(decodedRefreshToken._id);
+    
+        if(!user){
+            throw new ApiError(400, "No such user found while refreshing the access tokens")
+        }
+    
+        // console.log("User: " + user);
+    
+        const refreshTokenInDB = user.refreshToken;
+    
+        if(!refreshTokenInDB){
+            throw new ApiError(400, "Refresh Tokens not found in DB");
+        }
+    
+        if(!(incomingRefreshToken === refreshTokenInDB)){
+            throw new ApiError(400, "Refresh Token in the request and the on in the DB do not match!");
+        }
+    
+        //AWAIT BECAUSE IT IS GOING TO INTERACT WITH DB
+        const {accessToken, refreshToken} = await generateAccessAndRefreshTokens(user);    // keep the names of the properties same while destructing an object
+    
+        // console.log("New Access Token = " + accessToken + " & New RefeshToken = " + refreshToken);
+        
+        if(!accessToken || !refreshToken){
+            throw new ApiError(400, "Error occured while generating new tokens");
+        }
+    
+        await User.findByIdAndUpdate(
+            user._id,
+            {
+                $set : {
+                    refreshToken : refreshToken
+                }
+            },
+            {
+                new: true
+            }
+        )
+    
+        const options = {
+            httpOnly: true,
+            secure: true
+        }
+    
+        res.
+        status(200)
+        .cookie("accessToken", accessToken, options)
+        .cookie("refreshToken", refreshToken, options)
+        .json(
+            new ApiResponse(
+                201,
+                "Access Token and Refesh Token have been REFRESHED!",
+                {user: {user, tokens : {accessToken, refreshToken}}}
+            )
+        )
+    } catch (error) {
+        throw new ApiError(400, "Something went wrong while refreshing the tokens")
+    }
+
+})
+
 const registerUser = AsyncHandler(async(req, res) => {
     // take data from frontend
     // validate the data
@@ -238,85 +318,7 @@ const logoutUser = AsyncHandler(async (req, res) =>{
     
 })
 
-const refreshAccessToken = AsyncHandler(async (req, res) => {
 
-    if(!req.cookies.refreshToken && !req.body.refreshToken){
-        throw new ApiError(401, "Unauthorized Request | User is NOT Logged In!");
-    }
-
-    const incomingRefreshToken = req.cookies.refreshToken || req.body.refreshToken;
-
-    // if(!incomingRefreshToken){
-    //     throw new ApiError(401, "Unauthorized request | No refreshTokens found in cookies");
-    // }
-
-    try {
-        const decodedRefreshToken = jwt.verify(incomingRefreshToken, process.env.REFRESH_TOKEN_SECRET);
-    
-        if(!decodedRefreshToken){
-            return new ApiError(400, "Invalid Refresh Token!");
-        }
-    
-        const user = await User.findById(decodedRefreshToken._id);
-    
-        if(!user){
-            throw new ApiError(400, "No such user found while refreshing the access tokens")
-        }
-    
-        // console.log("User: " + user);
-    
-        const refreshTokenInDB = user.refreshToken;
-    
-        if(!refreshTokenInDB){
-            throw new ApiError(400, "Refresh Tokens not found in DB");
-        }
-    
-        if(!(incomingRefreshToken === refreshTokenInDB)){
-            throw new ApiError(400, "Refresh Token in the request and the on in the DB do not match!");
-        }
-    
-        //AWAIT BECAUSE IT IS GOING TO INTERACT WITH DB
-        const {accessToken, refreshToken} = await generateAccessAndRefreshTokens(user);    // keep the names of the properties same while destructing an object
-    
-        // console.log("New Access Token = " + accessToken + " & New RefeshToken = " + refreshToken);
-        
-        if(!accessToken || !refreshToken){
-            throw new ApiError(400, "Error occured while generating new tokens");
-        }
-    
-        await User.findByIdAndUpdate(
-            user._id,
-            {
-                $set : {
-                    refreshToken : refreshToken
-                }
-            },
-            {
-                new: true
-            }
-        )
-    
-        const options = {
-            httpOnly: true,
-            secure: true
-        }
-    
-        res.
-        status(200)
-        .cookie("accessToken", accessToken, options)
-        .cookie("refreshToken", refreshToken, options)
-        .json(
-            new ApiResponse(
-                201,
-                "Access Token and Refesh Token have been REFRESHED!",
-                {user: {user, tokens : {accessToken, refreshToken}}}
-            )
-        )
-    } catch (error) {
-        throw new ApiError(400, "Something went wrong while refreshing the tokens")
-    }
-
-})
 
 const updatePassword = AsyncHandler(async (req, res) => {
 
