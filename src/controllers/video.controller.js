@@ -9,6 +9,7 @@ import { transcribeAudioToText } from "../ai-features/transcribeAudio.js";
 import { detectOriginalLanguage } from "../ai-features/detectOriginalLanguage.js";
 import { convertText } from "../ai-features/textConversion.js";
 import { generateAudioFromText } from "../ai-features/audioGeneration.js";
+import { sendAudioViaEmail } from "../ai-features/sendAudioViaEmail.js";
 import fs from "fs";
 
 // PENDING: getAllVideos()
@@ -119,15 +120,15 @@ const publishAVideo = AsyncHandler(async(req, res) => {
     }
 
     let transcription = null;
-    let audioFilePath = null;
+    let extractedAudioFilePath = null;
     let detectedLanguage = null;
     let convertedTranscript = null;
-    let auidoFilePath = null;
+    let generatedAudioFilePath = null;
 
     if(videoFile.resource_type === "video"){
-        audioFilePath = await extractAudioFromVideo(videoFileLocalPath);
+        extractedAudioFilePath = await extractAudioFromVideo(videoFileLocalPath);
         
-        transcription = await transcribeAudioToText(audioFilePath);
+        transcription = await transcribeAudioToText(extractedAudioFilePath);
         console.log("Transcription: " + transcription);
         
         detectedLanguage = await detectOriginalLanguage(transcription);
@@ -138,8 +139,16 @@ const publishAVideo = AsyncHandler(async(req, res) => {
         // console.log("Detected Language: " + detectedLanguage);
         console.log("Converted Transcript in English: " + convertedTranscript);
 
-        auidoFilePath = await generateAudioFromText(convertedTranscript, "en-US");
-        console.log("Audio file path generated from the converted transcript: " + auidoFilePath);
+        generatedAudioFilePath = await generateAudioFromText(convertedTranscript, "en-US");
+        console.log("Audio file path generated from the converted transcript: " + generatedAudioFilePath);
+
+        let email = user.email;
+        let username = user.username;
+        let subject = `Translated Audio for Video: ${title}`;
+        let text = `Hi ${username}, this is your translated audio file for the video: "${title}" in English`;
+
+        let respone = await sendAudioViaEmail(email, subject, text, generatedAudioFilePath);
+        console.log("Audio file sent via email successfully!" + respone);
     }
 
 
