@@ -6,6 +6,9 @@ import { Video } from "../models/video.model.js";
 import { User } from "../models/user.model.js";
 import { extractAudioFromVideo } from "../ai-features/extractAudio.js";
 import { transcribeAudioToText } from "../ai-features/transcribeAudio.js";
+import { detectOriginalLanguage } from "../ai-features/detectOriginalLanguage.js";
+import { convertText } from "../ai-features/textConversion.js";
+import { generateAudioFromText } from "../ai-features/audioGeneration.js";
 import fs from "fs";
 
 // PENDING: getAllVideos()
@@ -98,8 +101,6 @@ const publishAVideo = AsyncHandler(async(req, res) => {
         throw new ApiError(500, "Something went wrong while uploading Thumbnail on Cloudinary!")
     }
 
-
-
     // console.log(videoFile);
     console.log("Video File Resource Type: " + videoFile.resource_type);
 
@@ -119,11 +120,26 @@ const publishAVideo = AsyncHandler(async(req, res) => {
 
     let transcription = null;
     let audioFilePath = null;
+    let detectedLanguage = null;
+    let convertedTranscript = null;
+    let auidoFilePath = null;
 
     if(videoFile.resource_type === "video"){
         audioFilePath = await extractAudioFromVideo(videoFileLocalPath);
+        
         transcription = await transcribeAudioToText(audioFilePath);
         console.log("Transcription: " + transcription);
+        
+        detectedLanguage = await detectOriginalLanguage(transcription);
+        console.log("Detected Language: " + detectedLanguage);
+
+        convertedTranscript = await convertText(transcription, detectedLanguage, "English");
+        // console.log("Transcription: " + transcription);
+        // console.log("Detected Language: " + detectedLanguage);
+        console.log("Converted Transcript in English: " + convertedTranscript);
+
+        auidoFilePath = await generateAudioFromText(convertedTranscript, "en-US");
+        console.log("Audio file path generated from the converted transcript: " + auidoFilePath);
     }
 
 

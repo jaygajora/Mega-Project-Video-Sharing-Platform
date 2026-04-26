@@ -318,8 +318,6 @@ const logoutUser = AsyncHandler(async (req, res) =>{
     
 })
 
-
-
 const updatePassword = AsyncHandler(async (req, res) => {
 
 
