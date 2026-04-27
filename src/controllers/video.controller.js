@@ -4,15 +4,19 @@ import { ApiResponse } from "../utils/ApiResponse.js";
 import { uploadToCloudinary } from "../utils/cloudinary.js";
 import { Video } from "../models/video.model.js";
 import { User } from "../models/user.model.js";
-import { extractAudioFromVideo } from "../ai-features/extractAudio.js";
-import { transcribeAudioToText } from "../ai-features/transcribeAudio.js";
-import { detectOriginalLanguage } from "../ai-features/detectOriginalLanguage.js";
-import { convertText } from "../ai-features/textConversion.js";
-import { generateAudioFromText } from "../ai-features/audioGeneration.js";
-import { sendAudioViaEmail } from "../ai-features/sendAudioViaEmail.js";
-import fs from "fs";
+import { extractAudioFromVideo } from "../ai-features/services/extractAudio.js";
+// // import { transcribeAudioToText } from "../ai-features/services/transcribeAudio.js";
+// import { detectOriginalLanguage } from "../ai-features/services/detectOriginalLanguage.js";
+// import { convertText } from "../ai-features/services/textConversion.js";
+// import { generateAudioFromText } from "../ai-features/services/audioGeneration.js";
+// import { sendAudioViaEmail } from "../ai-features/services/sendAudioViaEmail.js";
+// import { deleteLocalFile } from "../utils/deleteFile.js";
+// import fs from "fs";
 
+
+// ********************************
 // PENDING: getAllVideos()
+// ********************************
 
 // const getAllVideos = AsyncHandler(async(req, res) => {
 //     const { username } = req.params;
@@ -119,52 +123,37 @@ const publishAVideo = AsyncHandler(async(req, res) => {
         throw new ApiError(300, "Video Should be longer than 5 seconds!")
     }
 
-    let transcription = null;
-    let extractedAudioFilePath = null;
-    let detectedLanguage = null;
-    let convertedTranscript = null;
-    let generatedAudioFilePath = null;
+    // let transcription = null;
+    // let extractedAudioFilePath = null;
+    // let detectedLanguage = null;
+    // let convertedTranscript = null;
+    // let generatedAudioFilePath = null;
 
-    if(videoFile.resource_type === "video"){
-        extractedAudioFilePath = await extractAudioFromVideo(videoFileLocalPath);
+    // if(videoFile.resource_type === "video"){
+    //     extractedAudioFilePath = await extractAudioFromVideo(videoFileLocalPath);
         
-        transcription = await transcribeAudioToText(extractedAudioFilePath);
-        console.log("Transcription: " + transcription);
+    //     transcription = await transcribeAudioToText(extractedAudioFilePath);
+    //     console.log("Transcription: " + transcription);
         
-        detectedLanguage = await detectOriginalLanguage(transcription);
-        console.log("Detected Language: " + detectedLanguage);
+    //     detectedLanguage = await detectOriginalLanguage(transcription);
+    //     console.log("Detected Language: " + detectedLanguage);
 
-        convertedTranscript = await convertText(transcription, detectedLanguage, "English");
-        // console.log("Transcription: " + transcription);
-        // console.log("Detected Language: " + detectedLanguage);
-        console.log("Converted Transcript in English: " + convertedTranscript);
+    //     convertedTranscript = await convertText(transcription, detectedLanguage, "English");
+    //     // console.log("Transcription: " + transcription);
+    //     // console.log("Detected Language: " + detectedLanguage);
+    //     console.log("Converted Transcript in English: " + convertedTranscript);
 
-        generatedAudioFilePath = await generateAudioFromText(convertedTranscript, "en-US");
-        console.log("Audio file path generated from the converted transcript: " + generatedAudioFilePath);
+    //     generatedAudioFilePath = await generateAudioFromText(convertedTranscript, "en-US");
+    //     console.log("Audio file path generated from the converted transcript: " + generatedAudioFilePath);
 
-        let email = user.email;
-        let username = user.username;
-        let subject = `Translated Audio for Video: ${title}`;
-        let text = `Hi ${username}, this is your translated audio file for the video: "${title}" in English`;
+    //     let email = user.email;
+    //     let username = user.username;
+    //     let subject = `Translated Audio for Video: ${title}`;
+    //     let text = `Hi ${username}, this is your translated audio file for the video: "${title}" in English`;
 
-        let respone = await sendAudioViaEmail(email, subject, text, generatedAudioFilePath);
-        console.log("Audio file sent via email successfully!" + respone);
-    }
-
-
-    try{
-        if(videoFileLocalPath && fs.existsSync(videoFileLocalPath)){
-            fs.unlinkSync(videoFileLocalPath);    // delete the local video file after uploading it to cloudinary
-        }
-
-        if(thumbnailLocalPath && fs.existsSync(thumbnailLocalPath)){
-            fs.unlinkSync(thumbnailLocalPath);   // delete the local thumbnail file after uploading it to cloudinary
-        }
-    }
-    catch(error){
-        console.log("Error while deleting local files: " + error);
-        throw new ApiError(500, "Something went wrong while deleting the local files!")
-    }
+    //     let respone = await sendAudioViaEmail(email, subject, text, generatedAudioFilePath);
+    //     console.log("Audio file sent via email successfully!" + respone);
+    // }
 
     // console.log(videoFile);
 
@@ -181,8 +170,22 @@ const publishAVideo = AsyncHandler(async(req, res) => {
         }
     )
 
+    // const transcription = await Transcription.create({
+    //     video: video._id,
+    //     status: "UPLOADED"
+    // });
+
     if(!video){
         throw new ApiError(500, "Something went wrong while adding the video to Database! Please try again.");
+    }
+
+    try {
+        deleteLocalFile(videoFileLocalPath);
+        deleteLocalFile(thumbnailLocalPath);
+    }
+    catch(error){
+        console.log("Error while deleting local files: " + error);
+        throw new ApiError(500, "Something went wrong while deleting the local files!")
     }
 
     // const audioFilePath = await extractAudioFromVideo(videoFileLocalPath1 || videoFile.path);

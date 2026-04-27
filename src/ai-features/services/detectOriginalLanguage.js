@@ -1,4 +1,4 @@
-import { openai } from "../configs/openai.config.js";
+import { openai } from "../../configs/openai.config.js";
 
 import LanguageDetect from "languagedetect";
 const langageDetector = new LanguageDetect();

@@ -6,6 +6,10 @@ const videoSchema = new Schema({
         type: String,    // cloudinary URL for the uploaded video file
         required: true
     },
+    cloudinaryPublicId: {
+        type: String,    // cloudinary public ID for the uploaded video file, this is required to delete the video file from cloudinary when the video document is deleted from the database
+        required: true
+    },
     thumbnail: {
         type: String,    // cloudinary URL for thumbnail image
         required: true

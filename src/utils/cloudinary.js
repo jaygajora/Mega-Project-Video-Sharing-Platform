@@ -4,9 +4,6 @@ import fs from "fs";        // fs module is used to delete the local file after 
 
 // import dotenv from "dotenv";
 
-import { extractAudioFromVideo } from "../ai-features/extractAudio.js";
-import { transcribeAudioToText } from "../ai-features/transcribeAudio.js";
-
 cloudinary.config({
     cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
     api_key: process.env.CLOUDINARY_API_KEY,

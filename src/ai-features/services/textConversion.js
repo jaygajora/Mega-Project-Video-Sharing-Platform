@@ -1,4 +1,4 @@
-import { openai } from "../configs/openai.config.js";
+import { openai } from "../../configs/openai.config.js";
 
 async function convertText(originalTranscriptText, originalLanguage, newLanguage){
     if(originalLanguage === newLanguage){

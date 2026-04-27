@@ -1,4 +1,4 @@
-import { transporter } from "../configs/nodemailer.config.js";
+import { transporter } from "../../configs/nodemailer.config.js";
 import fs from "fs";
 import path from "path";
 

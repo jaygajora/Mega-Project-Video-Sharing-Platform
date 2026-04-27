@@ -1,6 +1,6 @@
-import { openai } from "../configs/openai.config.js";
+import { openai } from "../../configs/openai.config.js";
 import { Readable } from "stream";
-import { ApiError } from "../utils/ApiError.js";
+import { ApiError } from "../../utils/ApiError.js";
 import path from "path";
 import fs from "fs";
 
