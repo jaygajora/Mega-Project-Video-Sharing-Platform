@@ -1,6 +1,9 @@
 import { Transcriptions } from "../../models/transcription.model.js";
 import { extractAudioFromVideo } from "../services/extractAudio.js";
 import { uploadToCloudinary } from "../../utils/cloudinary.js";
+import { deleteLocalFile } from "../../utils/deleteFile.js";
+import { downloadFileFromCloudinary } from "../../utils/downloadFileFromCloudinary.js";
+import { transcribeQueue } from "../queues/transcribe.queue.js";
 
 async function extractAudioJob(job){
     const { transcriptionId } = job.data;
@@ -25,22 +28,26 @@ async function extractAudioJob(job){
 
         const videoPath = transcription.video.videoFile;
 
-        const downloadedVideopath = await downloadFileFromCloudinary(videoPath);
-        const extractedAudioPath = await extractAudioFromVideo(downloadedVideopath);
+        const downloadedVideoPath = await downloadFileFromCloudinary(videoPath);
+        const extractedAudioPath = await extractAudioFromVideo(downloadedVideoPath);
 
         const audioPathOnCloudinary = await uploadToCloudinary(extractedAudioPath, "Audio");
 
         transcription.extractedAudioPath = audioPathOnCloudinary.secure_url;
         transcription.status = "AUDIO_EXTRACTED";
-        transcription.save();
+        await transcription.save();
 
         // delete the downloaded video file and the extracted audio file from the local file system to save storage space on the server
-        await deleteLocalFile(downloadedVideopath);
-        await deleteLocalFile(extractedAudioPath);
+        await deleteLocalFile(downloadedVideoPath);
 
-        await transcribeQueue.add("transcribe-queue", 
+        console.log("Downloaded Video file DELETED!");
+
+
+
+        const job = await transcribeQueue.add("transcribe-queue", 
             {
-                transcriptionId: transcription._id.toString()
+                transcriptionId: transcription._id.toString(),
+                localAudioPath: extractedAudioPath
             },
             {
                 attempt: 3,
@@ -51,12 +58,16 @@ async function extractAudioJob(job){
             }
         );
 
+        transcription.jobId = String(job.id);
+        await transcription.save();
+
         return { success: true, message: "Audio extracted and uploaded to Cloudinary successfully, transcription job is now queued for transcription!" }
     }
     catch(error){
         transcription.status = "FAILED";
-        transcription.error = error.message;
+        transcription.error = "Extracting Audio Job: " + error.message;
         await transcription.save();
+        console.log("Extracting Audio Job: " + error.message);
         throw new Error("Failed to extract audio from video and upload to Cloudinary: " + error.message);
     }
 }

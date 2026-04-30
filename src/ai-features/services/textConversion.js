@@ -25,6 +25,7 @@ async function convertText(originalTranscriptText, originalLanguage, newLanguage
 
         const translatedText = response.choices[0].message.content;
 
+        console.log("Translated Text: " + translatedText);
         return translatedText;
     }
     catch (error) {

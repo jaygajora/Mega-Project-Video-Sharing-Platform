@@ -30,6 +30,8 @@ function extractAudioFromVideo(videoFilePath){
         .on("end", () => { resolve(outputFilePath) })
         .on("error", (error) => { reject(error) })
         .save(outputFilePath);
+
+        return outputFilePath;
     });
 }
 

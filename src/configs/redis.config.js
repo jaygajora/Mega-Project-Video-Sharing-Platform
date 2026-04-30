@@ -7,4 +7,13 @@ const redisConnection = new IORedis(
     }
 );
 
+redisConnection.on("connect", () => {
+    console.log("Connected to redis successfully!");
+});
+
+redisConnection.on("error", (error) => {
+    console.error("Error connecting to redis: " + error.message);
+});
+
+
 export { redisConnection };

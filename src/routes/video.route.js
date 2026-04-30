@@ -1,5 +1,6 @@
 import { Router } from "express";
 import upload from "../middlewares/multer.middleware.js";
+import { transcribe } from "../controllers/transcription.controller.js";
 import { 
     // getAllVideos,
     publishAVideo,
@@ -47,5 +48,7 @@ router.route("/:videoId").patch(
 router.route("/:videoId").delete(verifyJWT, deleteVideo);
 
 router.route("/:videoId/toggle-publish-status").post(verifyJWT, togglePublishStatus);
+
+router.route("/:videoId/transcribe").post(verifyJWT, transcribe);
 
 export default router;

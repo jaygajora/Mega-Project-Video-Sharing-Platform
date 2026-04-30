@@ -37,10 +37,15 @@ const transcriptionSchema = new mongoose.Schema(
             enum: [ 
                 "QUEUED", 
                 "PROCESSING", 
-                "AUDIO_EXTRACTED", 
+                "AUDIO_EXTRACTED",
+                "TRANSCRIBING", 
                 "TRANSCRIBED", 
-                "CONVERTED_TRANSCRIPTION_TO_TARGET_LANGUAGE",  
-                "AUDIO_GENERATED", 
+                "TRANSLATING",
+                "TRANSLATED",
+                "LANGUAGE_DETECTED", 
+                "GENERATING_AUDIO", 
+                "AUDIO_GENERATED",
+                "SENDING_AUDIO", 
                 "COMPLETED", 
                 "FAILED"
             ],

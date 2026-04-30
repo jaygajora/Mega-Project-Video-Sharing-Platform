@@ -1,7 +1,7 @@
 import fs from "fs";
 
 //********************************* */
-import { openai } from "../configs/openai.config.js";
+import { openai } from "../../configs/openai.config.js";
 
 async function transcribeAudioToText(audioFilePath){
     const transcription = await openai.audio.transcriptions.create({

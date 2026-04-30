@@ -22,6 +22,7 @@
   "dependencies": {
     "@leetnotion/leetcode-api": "^1.10.0",
     "bcrypt": "^6.0.0",
+    "bullmq": "^5.76.4",
     "cloudinary": "^2.9.0",
     "cookie-parser": "^1.4.7",
     "cors": "^2.8.6",

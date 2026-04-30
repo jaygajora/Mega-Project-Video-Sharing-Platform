@@ -3,6 +3,8 @@ import { redisConnection } from "../../configs/redis.config.js";
 import { extractAudioJob } from "../jobs/extractAudio.job.js";
 import { Transcriptions } from "../../models/transcription.model.js";
 
+console.log("Extract Audio Worker Started!");
+
 const extractAudioWorker = new Worker(
     "extract-audio-queue",
     async(job) => {

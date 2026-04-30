@@ -1,11 +1,11 @@
-import AsyncHandler from "../utils/AsyncHandler.js";
+import { AsyncHandler } from "../utils/AsyncHandler.js";
 import { ApiError } from "../utils/ApiError.js";
 import { Video } from "../models/video.model.js";
 import { Transcriptions } from "../models/transcription.model.js";
 import path from "path";
 import fs from "fs";
 import { deleteLocalFile } from "../utils/deleteFile.js";
-import { downloadFileFromCouldinary } from "../utils/downloadFileFromCloudinary.js";
+import { downloadFileFromCloudinary} from "../utils/downloadFileFromCloudinary.js";
 import { extractAudioQueue } from "../ai-features/queues/extractAudio.queue.js";
 
 const transcribe = AsyncHandler(async (req, res) => {
@@ -28,16 +28,19 @@ const transcribe = AsyncHandler(async (req, res) => {
         const cloudinaryURL = video.videoFile;
         const clodinaryPublicId = video.cloudinaryPublicId;
         
-        if(!cloudinaryURL || !clodinaryPublicId){
+        if(!cloudinaryURL){
             throw new ApiError(400, "Cloudinary URL and Public ID are required for transcription!");
         }
 
         // download the video file from cloudinary using the cloudinary URL and save it to a local path
-        const videoFileLocalPath = await downloadFileFromCouldinary(cloudinaryURL);
+        // const videoFileLocalPath = await downloadFileFromCloudinary(cloudinaryURL);
 
-        if(!videoFileLocalPath){
-            throw new ApiError(500, "Failed to download the video file from Cloudinary for transcription!");
-        }
+        // do it in extract audio job
+                        
+
+        // if(!videoFileLocalPath){
+        //     throw new ApiError(500, "Failed to download the video file from Cloudinary for transcription!");
+        // }
 
         const transcription = await Transcriptions.create({
             video: video._id,
@@ -47,7 +50,8 @@ const transcribe = AsyncHandler(async (req, res) => {
 
         const job = await extractAudioQueue.add("extract-audio-queue",
             {
-                transcriptionId: transcription._id.toString()
+                transcriptionId: transcription._id.toString(),
+                // downloadedVideoPath: videoFileLocalPath 
             },
             {
                 attempt : 3,   // number of attempts if the job fails

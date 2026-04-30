@@ -34,6 +34,12 @@ const port = process.env.PORT || 8080;
 // Since connectToDB is an async function, so it will return a promise and we can use .then() and .catch() 
 // to handle the promise returned by connectToDB()
 
+import "./ai-features/workers/extractAudio.worker.js";
+import "./ai-features/workers/transcribe.worker.js";
+import "./ai-features/workers/translate.worker.js";
+import "./ai-features/workers/generateAudio.worker.js";
+import "./ai-features/workers/sendAudioViaEmail.worker.js";
+
 connectToDB() // this will connect to the database before starting the server
 .then(() => {
 

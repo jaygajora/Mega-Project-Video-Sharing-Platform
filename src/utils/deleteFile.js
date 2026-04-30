@@ -9,6 +9,7 @@ try{
         
         if(filePath && fs.existsSync(filePath)){
             fs.unlinkSync(filePath);    // delete the local file after uploading it to cloudinary
+            console.log("Local file deleted!");
         }
 
     }

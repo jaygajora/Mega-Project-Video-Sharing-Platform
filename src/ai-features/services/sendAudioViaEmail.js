@@ -27,6 +27,8 @@ async function sendAudioViaEmail(to, subject, text, audioFilePath){
         };
 
         const mail = await transporter.sendMail(mailOptions);
+
+        console.log(`Email sent to ${to}`);
         return mail;
     } catch (error) {
         console.error("Error sending audio via email:", error);
